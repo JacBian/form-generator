@@ -3,7 +3,7 @@ import draggable from 'vuedraggable'
 import render from '@/components/render/render'
 
 const components = {
-  itemBtns(h, currentItem, index, list) {
+  itemBtns(h, currentItem, index, list,parent) {
     const { copyItem, deleteItem } = this.$listeners
     return [
       <span class="drawing-item-copy" title="复制" onClick={event => {
@@ -20,7 +20,10 @@ const components = {
   }
 }
 const layouts = {
-  colFormItem(h, currentItem, index, list) {
+  colFormItem(h, currentItem, index, list,parent) {
+  	console.log( 'colFormItem' )
+  	console.log( currentItem )
+  	console.log( parent )
     const { activeItem } = this.$listeners
     const config = currentItem.__config__
     const child = renderChildren.apply(this, arguments)
@@ -28,22 +31,37 @@ const layouts = {
     if (this.formConf.unFocusedComponentBorder) className += ' unfocus-bordered'
     let labelWidth = config.labelWidth ? `${config.labelWidth}px` : null
     if (config.showLabel === false) labelWidth = '0'
-    return (
-      <el-col span={config.span} class={className}
-        nativeOnClick={event => { activeItem(currentItem); event.stopPropagation() }}>
-        <el-form-item label-width={labelWidth}
-          label={config.showLabel ? config.label : ''} required={config.required}>
-          <render key={config.renderKey} conf={currentItem} onInput={ event => {
-            this.$set(config, 'defaultValue', event)
-          }}>
-            {child}
-          </render>
-        </el-form-item>
-        {components.itemBtns.apply(this, arguments)}
-      </el-col>
-    )
+	  if(parent && parent.__config__ && parent.__config__.tag === 'el-form'){
+		  return (
+			  <el-col span={config.span} class={className}
+		  nativeOnClick={event => { activeItem(currentItem); event.stopPropagation() }}>
+	  <el-form-item label-width={labelWidth}
+		  label={config.showLabel ? config.label : ''} required={config.required}>
+			  <render key={config.renderKey} conf={currentItem} onInput={ event => {
+			  this.$set(config, 'defaultValue', event)
+		  }}>
+		  {child}
+	  </render>
+		  </el-form-item>
+		  {components.itemBtns.apply(this, arguments)}
+	  </el-col>
+	  )
+	  }else{
+		  return (
+			  <el-col span={config.span} class={className}
+		  nativeOnClick={event => { activeItem(currentItem); event.stopPropagation() }}>
+			  <render key={config.renderKey} conf={currentItem} onInput={ event => {
+			  this.$set(config, 'defaultValue', event)
+				  }}>
+				  {child}
+			  </render>
+		  {components.itemBtns.apply(this, arguments)}
+	  </el-col>
+	  )
+	  }
+
   },
-  rowFormItem(h, currentItem, index, list) {
+  rowFormItem(h, currentItem, index, list,parent) {
     const { activeItem } = this.$listeners
     const config = currentItem.__config__
     const className = this.activeId === config.formId
@@ -69,7 +87,7 @@ const layouts = {
       </el-col>
     )
   },
-  formLayout(h, currentItem, index, list) {
+  formLayout(h, currentItem, index, list,parent) {
 		const { activeItem } = this.$listeners
 		const config = currentItem.__config__
 		const className = this.activeId === config.formId
@@ -95,7 +113,7 @@ const layouts = {
 		</el-col>
 	)
 	},
-  raw(h, currentItem, index, list) {
+  raw(h, currentItem, index, list,parent) {
     const config = currentItem.__config__
     const child = renderChildren.apply(this, arguments)
     return <render key={config.renderKey} conf={currentItem} onInput={ event => {
@@ -106,13 +124,13 @@ const layouts = {
   }
 }
 
-function renderChildren(h, currentItem, index, list) {
+function renderChildren(h, currentItem, index, list,parent) {
   const config = currentItem.__config__
   if (!Array.isArray(config.children)) return null
   return config.children.map((el, i) => {
     const layout = layouts[el.__config__.layout]
     if (layout) {
-      return layout.call(this, h, el, i, config.children)
+      return layout.call(this, h, el, i, config.children,currentItem )
     }
     return layoutIsNotFound.call(this)
   })
@@ -138,7 +156,7 @@ export default {
     const layout = layouts[this.currentItem.__config__.layout]
 
     if (layout) {
-      return layout.call(this, h, this.currentItem, this.index, this.drawingList)
+      return layout.call(this, h, this.currentItem, this.index, this.drawingList,null)
     }
     return layoutIsNotFound.call(this)
   }

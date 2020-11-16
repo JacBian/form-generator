@@ -21,10 +21,11 @@
             <draggable
               class="components-draggable"
               :list="item.list"
-              :group="{ name:item.draggableGroup, pull: 'clone', put: false }"
+              :group="{ name:'formList', pull: 'clone', put: false }"
               :clone="cloneComponent"
               draggable=".components-item"
               :sort="false"
+              :move="onMove"
               @end="onEnd"
             >
               <div
@@ -70,7 +71,7 @@
             :disabled="formConf.disabled"
             :label-width="formConf.labelWidth + 'px'"
           >
-            <draggable class="drawing-board" :list="drawingList" :animation="340" :group="draggableGroup">
+            <draggable class="drawing-board" :list="drawingList" :animation="340" group="formList">
               <draggable-item
                 v-for="(item, index) in drawingList"
                 :key="item.renderKey"
@@ -145,7 +146,7 @@ import {
   selectComponents,//选择组件
   layoutComponents,//布局组件
   formConf//表单配置
-} from '@/components/generator/config'
+} from '@/components/generatorFree/config'
 import {
   exportDefault, //
   beautifierConf,//js美化配置
@@ -158,13 +159,13 @@ import {
   vueTemplate,//包裹template标签
   vueScript, //包裹script标签
   cssStyle//包裹style标签
-} from '@/components/generator/html'
+} from '@/components/generatorFree/html'
   //生成js代码
-import { makeUpJs } from '@/components/generator/js'
+import { makeUpJs } from '@/components/generatorFree/js'
   //生成css代码
-import { makeUpCss } from '@/components/generator/css'
+import { makeUpCss } from '@/components/generatorFree/css'
   //描绘默认配置
-import drawingDefalut from '@/components/generator/drawingDefalut'
+import drawingDefalut from '@/components/generatorFree/drawingDefalut'
 import logo from '@/assets/logo.png'
 import {
   getDrawingList,//获取描绘列表
@@ -217,23 +218,19 @@ export default {
       generateConf: null,
       showFileName: false,
       activeData: drawingDefalut[0],
-      draggableGroup:'layout',
       saveDrawingListDebounce: debounce(340, saveDrawingList),
       saveIdGlobalDebounce: debounce(340, saveIdGlobal),
       leftComponents: [
         {
           title: '布局型组件',
-          draggableGroup:'layout',
           list: layoutComponents
         },
         {
           title: '输入型组件',
-          draggableGroup:'formList',
           list: inputComponents
         },
         {
           title: '选择型组件',
-          draggableGroup:'formList',
           list: selectComponents
         },
       ]
@@ -375,6 +372,9 @@ export default {
     activeFormItem(currentItem) {
       this.activeData = currentItem
       this.activeId = currentItem.__config__.formId
+    },
+    onMove(evt){
+      // console.log('onMove-------');
     },
     /**
      * 拖拽完成后，如果来源不等于去向容器
